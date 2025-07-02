@@ -26,3 +26,4 @@ wget -O ./action.yml https://raw.githubusercontent.com/ophub/amlogic-s9xxx-armbi
 sed -i 's|default: "ophub/kernel"|default: "v2clash/build-armbian"|g' ./action.yml
 sed -i 's|default: "6.1.y_6.12.y"|default: "6.6.y_6.12.y"|g' ./action.yml
 sed -i 's/default: "-ophub"/default: ""/g' ./action.yml
+sed -i 's|custom_name="-ophub"|custom_name=""|g' ./recompile
