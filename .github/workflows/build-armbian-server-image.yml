@@ -1,4 +1,4 @@
-name: Build Armbian using releases files
+name: Build Armbian server image
 
 on:
   repository_dispatch:
