@@ -1,94 +1,120 @@
 name: Kernel_compilation
 
 on:
-  repository_dispatch:
   workflow_dispatch:
-    inputs:
-      checkupdates:
-        description: 'Checkupdates connection to Actions'
-        required: false
-        default: 'false'
-      kernel_sign:
-        description: "Set the kernel custom signature"
-        required: false
-        default: ""
+  repository_dispatch:
   schedule:
     - cron: 10 */4 * * *
     
 env:
-  KERNEL_SOURCE: unifreq
-  KERNEL_VERSION: 5.4.228_5.10.161_5.15.100_6.1.16
-  KERNEL_TOOLCHAIN: gcc
-  KERNEL_PACKAGE: all
-  KERNEL_AUTO: true
+  TZ: Asia/Shanghai
+
 jobs:
+  autosync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Git Repository
+        uses: actions/checkout@v2
+        
+      - name: Resync Code
+        run: |
+          chmod +x .github/main.sh
+          ./.github/main.sh
+      
+      - name: Commit
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          status=$(git status -sb)
+          if [ "$status" == "## master...origin/master" ];then
+              echo "nothing to commit, working tree clean"
+          else
+          Emoji=("🎉" "🤞" "✨" "🎁" "🎈" "🎄" "🎨" "💋" "🍓" "🍕" "🍉" "💐" "🌴" "🚀" "🛸" "🗽" "⛅" "🌈" "🔥" "⛄" "🐶" "🏅" "🦄" "🐤")
+          git add .
+          git commit -m "${Emoji[$[$RANDOM % ${#Emoji[@]}]]} Sync $(TZ='Asia/Shanghai' date +%Y-%m-%d" "%H:%M:%S)${Emoji[$[$RANDOM % ${#Emoji[@]}]]}"
+          fi
+        
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: main
+
   Checka:
+    needs: autosync
     runs-on: ubuntu-latest
     env:
-      REPO_URL_Kernel510: https://github.com/unifreq/linux-5.10.y
-      REPO_BRANCH_Kernel510: main
-      REPO_PATH_Kernel510 : "Kernel_510"
-
       REPO_URL_Kernel54: https://github.com/unifreq/linux-5.4.y
       REPO_BRANCH_Kernel54: main
-      REPO_PATH_Kernel54 : "Kernel_54"
+      REPO_PATH_Kernel54: "Kernel_54"
+
+      REPO_URL_Kernel510: https://github.com/unifreq/linux-5.10.y
+      REPO_BRANCH_Kernel510: main
+      REPO_PATH_Kernel510: "Kernel_510"
       
       REPO_URL_Kernel515: https://github.com/unifreq/linux-5.15.y
       REPO_BRANCH_Kernel515: main
-      REPO_PATH_Kernel515 : "Kernel_515"
+      REPO_PATH_Kernel515: "Kernel_515"
 
-      REPO_URL_Kernel6: https://github.com/unifreq/linux-6.1.y
-      REPO_BRANCH_Kernel6: main
-      REPO_PATH_Kernel6 : "Kernel_6"
+      REPO_URL_Kernel61: https://github.com/unifreq/linux-6.1.y
+      REPO_BRANCH_Kernel61: main
+      REPO_PATH_Kernel61: "Kernel_61"
+
+      REPO_URL_Kernel612: https://github.com/unifreq/linux-6.12.y
+      REPO_BRANCH_Kernel612: main
+      REPO_PATH_Kernel612: "Kernel_612"
+
+      REPO_URL_Kernel66: https://github.com/unifreq/linux-6.6.y
+      REPO_BRANCH_Kernel66: main
+      REPO_PATH_Kernel66: "Kernel_66"
       
     outputs:
-      output: ${{ steps.outputunifreq.outputs.unifreq }}
-      
+      unifreq: ${{ steps.outputunifreq.outputs.unifreq }}
+    
     steps:
-
-    - name: Get Commit Hash
-      id: getHash
+    - name: Clone and Get Commit Hash
+      id: clone_and_get_hash
       run: |
-      
-        git clone --depth 1 $REPO_URL_Kernel510 -b $REPO_BRANCH_Kernel510 $REPO_PATH_Kernel510
-        cd $REPO_PATH_Kernel510
-        echo "commitHash_Kernel510=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-        cd
-        
         git clone --depth 1 $REPO_URL_Kernel54 -b $REPO_BRANCH_Kernel54 $REPO_PATH_Kernel54
         cd $REPO_PATH_Kernel54
-        echo "commitHash_Kernel54=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-        cd
+        echo "commitHash_Kernel54=$(git rev-parse HEAD)" >> $GITHUB_ENV
+        
+        git clone --depth 1 $REPO_URL_Kernel510 -b $REPO_BRANCH_Kernel510 $REPO_PATH_Kernel510
+        cd $REPO_PATH_Kernel510
+        echo "commitHash_Kernel510=$(git rev-parse HEAD)" >> $GITHUB_ENV
         
         git clone --depth 1 $REPO_URL_Kernel515 -b $REPO_BRANCH_Kernel515 $REPO_PATH_Kernel515
         cd $REPO_PATH_Kernel515
-        echo "commitHash_Kernel515=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-        cd
+        echo "commitHash_Kernel515=$(git rev-parse HEAD)" >> $GITHUB_ENV
         
-        git clone --depth 1 $REPO_URL_Kernel6 -b $REPO_BRANCH_Kernel6 $REPO_PATH_Kernel6
-        cd $REPO_PATH_Kernel6
-        echo "commitHash_Kernel6=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-        cd
+        git clone --depth 1 $REPO_URL_Kernel61 -b $REPO_BRANCH_Kernel61 $REPO_PATH_Kernel61
+        cd $REPO_PATH_Kernel61
+        echo "commitHash_Kernel61=$(git rev-parse HEAD)" >> $GITHUB_ENV
+
+        git clone --depth 1 $REPO_URL_Kernel612 -b $REPO_BRANCH_Kernel612 $REPO_PATH_Kernel612
+        cd $REPO_PATH_Kernel612
+        echo "commitHash_Kernel612=$(git rev-parse HEAD)" >> $GITHUB_ENV
+
+        git clone --depth 1 $REPO_URL_Kernel66 -b $REPO_BRANCH_Kernel66 $REPO_PATH_Kernel66
+        cd $REPO_PATH_Kernel66
+        echo "commitHash_Kernel66=$(git rev-parse HEAD)" >> $GITHUB_ENV
         
     - name: Show Commit Head and Combination Heads
       id: combHeader
       run: |
-        echo "commitHash_Kernel510: ${{ steps.getHash.outputs.commitHash_Kernel510 }}"
-        echo "commitHash_Kernel54: ${{ steps.getHash.outputs.commitHash_Kernel54 }}"
-        echo "commitHash_Kernel515: ${{ steps.getHash.outputs.commitHash_Kernel515 }}"
-        echo "commitHash_Kernel6: ${{ steps.getHash.outputs.commitHash_Kernel6 }}"
-        echo "commitHash_All=\
-          ${{steps.getHash.outputs.commitHash_Kernel510}}\
-          ${{steps.getHash.outputs.commitHash_Kernel54}}\
-          ${{steps.getHash.outputs.commitHash_Kernel515}}\
-          ${{steps.getHash.outputs.commitHash_Kernel6}}" >> $GITHUB_OUTPUT
-          
+        echo "commitHash_Kernel54: ${{ env.commitHash_Kernel54 }}"
+        echo "commitHash_Kernel510: ${{ env.commitHash_Kernel510 }}"
+        echo "commitHash_Kernel515: ${{ env.commitHash_Kernel515 }}"
+        echo "commitHash_Kernel61: ${{ env.commitHash_Kernel61 }}"
+        echo "commitHash_Kernel612: ${{ env.commitHash_Kernel612 }}"
+        echo "commitHash_Kernel66: ${{ env.commitHash_Kernel66 }}"
+        
     - name: Compare Commit Hash
       id: cacheHash
       uses: actions/cache@main
       with:
-        path: .commitHash_All
-        key: HEAD-${{ steps.combHeader.outputs.commitHash_All }}
+        path: ${{ github.workspace }}
+        key: ${{ runner.os }}-commitHash-${{ env.commitHash_Kernel510 }}-${{ env.commitHash_Kernel54 }}-${{ env.commitHash_Kernel515 }}-${{ env.commitHash_Kernel61 }}-${{ env.commitHash_Kernel612 }}-${{ env.commitHash_Kernel66 }}
    
     - name: Set output for next job
       id: outputunifreq
@@ -99,51 +125,526 @@ jobs:
     - name: Save New Commit Hash
       if: steps.cacheHash.outputs.cache-hit != 'true'
       run: |
-        echo ${{ steps.getHash.outputs.commitHash_Kernel510 }} | tee .commitHash_Kernel510
-        echo ${{ steps.getHash.outputs.commitHash_Kernel54 }} | tee .commitHash_Kernel54
-        echo ${{ steps.getHash.outputs.commitHash_Kernel515 }} | tee .commitHash_Kernel515
-        echo ${{ steps.getHash.outputs.commitHash_Kernel6 }} | tee .commitHash_Kernel6
-        echo ${{ steps.combHeader.outputs.commitHash_All }} | tee .commitHash_All 
+        echo ${{ env.commitHash_Kernel54 }} > $GITHUB_WORKSPACE/commitHash_Kernel54
+        echo ${{ env.commitHash_Kernel510 }} > $GITHUB_WORKSPACE/commitHash_Kernel510
+        echo ${{ env.commitHash_Kernel515 }} > $GITHUB_WORKSPACE/commitHash_Kernel515
+        echo ${{ env.commitHash_Kernel61 }} > $GITHUB_WORKSPACE/commitHash_Kernel61
+        echo ${{ env.commitHash_Kernel612 }} > $GITHUB_WORKSPACE/commitHash_Kernel612
+        echo ${{ env.commitHash_Kernel66 }} > $GITHUB_WORKSPACE/commitHash_Kernel66
 # /////////////////////////////////////////////////////////////////////////////////////////////////////////        
-  Build_Kernel:
+  Build_Kernel54:
     needs: [Checka]   
     if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates == 'true'}}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-arm
 
     steps:
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: Initialization environment
+        id: init
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo -E swapoff -a
-          sudo -E rm -f /swapfile
-          sudo -E docker image prune -a -f
-          sudo -E snap set system refresh.retain=2
-          sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d /usr/local/lib/android
+          docker rmi $(docker images -q) 2>/dev/null
           [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+          sudo swapoff -a
+          sudo rm -f /swapfile /mnt/swapfile
           sudo -E apt-get -y update
           sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
-          sudo -E apt-get -y install $(curl -fsSL https://is.gd/depend_ubuntu2204_armbian)
+          sudo -E apt-get -y install $(curl -fsSL https://tinyurl.com/ubuntu2204-build-armbian)
           sudo -E systemctl daemon-reload
           #sudo -E apt-get -y full-upgrade
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
-          sudo timedatectl set-timezone "Asia/Shanghai"
-          echo "COMPILE_STARTINGTIME=$(date +"%m.%d.%H%M")" >> $GITHUB_ENV
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Create simulated physical disk
+        id: disk
+        run: |
+          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+          sudo truncate -s "${root_size}"G /root.img
+          sudo losetup /dev/loop6 /mnt/mnt.img
+          sudo losetup /dev/loop7 /root.img
+          sudo pvcreate /dev/loop6
+          sudo pvcreate /dev/loop7
+          sudo vgcreate github /dev/loop6 /dev/loop7
+          sudo lvcreate -n runner -l 100%FREE github
+          sudo mkfs.xfs /dev/github/runner
+          sudo mkdir -p /builder
+          sudo mount /dev/github/runner /builder
+          sudo chown -R runner.runner /builder
+          df -hT
+
+      - name: Create a mapped directory
+        id: mapped
+        working-directory: /builder
+        run: |
+          df -hT ${PWD}
+          mkdir -p /builder/{kernel,output}
+          ln -sf /builder/kernel /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/kernel
+          ln -sf /builder/output /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/output
+          echo "status=success" >> ${GITHUB_OUTPUT}
           
       - name: Compile the kernel for Amlogic s9xxx
-        uses: skywrt/kernel@main
+        uses: v2clash/kernel@main
         with:
           build_target: kernel
-          kernel_source: ${{ env.KERNEL_SOURCE }}
-          kernel_version: ${{ env.KERNEL_VERSION }}
-          kernel_auto: ${{ env.KERNEL_AUTO }}
-          kernel_package: ${{ env.KERNEL_PACKAGE }}
-          kernel_sign: ${{ github.event.inputs.kernel_sign }}
-          kernel_toolchain: ${{ env.KERNEL_TOOLCHAIN }}
+          kernel_source: ${{ inputs.kernel_source }}
+          kernel_version: 5.4.293
+          kernel_auto: ${{ inputs.kernel_auto }}
+          delete_source: ${{ inputs.delete_source }}
+          kernel_package: ${{ inputs.kernel_package }}
+          kernel_sign: ${{ inputs.kernel_sign }}
+          kernel_toolchain: ${{ inputs.kernel_toolchain }}
+          compress_format: ${{ inputs.compress_format }}
+          silent_log: ${{ inputs.silent_log }}
+
+      - name: Upload Kernel to Release
+        uses: ncipollo/release-action@main
+        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        with:
+          name: Kernel_Stable
+          tag: kernel_stable
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          token: ${{ secrets.GH_TOKEN }}
+          body: |
+            - 这是`稳定版`内核，可以在 Armbian 和 OpenWrt 里使用。
+
+  Build_Kernel510:
+    needs: [Checka]   
+    if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates == 'true'}}
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialization environment
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q) 2>/dev/null
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+          sudo swapoff -a
+          sudo rm -f /swapfile /mnt/swapfile
+          sudo -E apt-get -y update
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y install $(curl -fsSL https://tinyurl.com/ubuntu2204-build-armbian)
+          sudo -E systemctl daemon-reload
+          #sudo -E apt-get -y full-upgrade
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Create simulated physical disk
+        id: disk
+        run: |
+          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+          sudo truncate -s "${root_size}"G /root.img
+          sudo losetup /dev/loop6 /mnt/mnt.img
+          sudo losetup /dev/loop7 /root.img
+          sudo pvcreate /dev/loop6
+          sudo pvcreate /dev/loop7
+          sudo vgcreate github /dev/loop6 /dev/loop7
+          sudo lvcreate -n runner -l 100%FREE github
+          sudo mkfs.xfs /dev/github/runner
+          sudo mkdir -p /builder
+          sudo mount /dev/github/runner /builder
+          sudo chown -R runner.runner /builder
+          df -hT
+
+      - name: Create a mapped directory
+        id: mapped
+        working-directory: /builder
+        run: |
+          df -hT ${PWD}
+          mkdir -p /builder/{kernel,output}
+          ln -sf /builder/kernel /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/kernel
+          ln -sf /builder/output /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/output
+          echo "status=success" >> ${GITHUB_OUTPUT}
+          
+      - name: Compile the kernel for Amlogic s9xxx
+        uses: v2clash/kernel@main
+        with:
+          build_target: kernel
+          kernel_source: ${{ inputs.kernel_source }}
+          kernel_version: 5.10.237
+          kernel_auto: ${{ inputs.kernel_auto }}
+          delete_source: ${{ inputs.delete_source }}
+          kernel_package: ${{ inputs.kernel_package }}
+          kernel_sign: ${{ inputs.kernel_sign }}
+          kernel_toolchain: ${{ inputs.kernel_toolchain }}
+          compress_format: ${{ inputs.compress_format }}
+          silent_log: ${{ inputs.silent_log }}
+
+      - name: Upload Kernel to Release
+        uses: ncipollo/release-action@main
+        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        with:
+          name: Kernel_Stable
+          tag: kernel_stable
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          token: ${{ secrets.GH_TOKEN }}
+          body: |
+            - 这是`稳定版`内核，可以在 Armbian 和 OpenWrt 里使用。
+
+  Build_Kernel515:
+    needs: [Checka]   
+    if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates == 'true'}}
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialization environment
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q) 2>/dev/null
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+          sudo swapoff -a
+          sudo rm -f /swapfile /mnt/swapfile
+          sudo -E apt-get -y update
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y install $(curl -fsSL https://tinyurl.com/ubuntu2204-build-armbian)
+          sudo -E systemctl daemon-reload
+          #sudo -E apt-get -y full-upgrade
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Create simulated physical disk
+        id: disk
+        run: |
+          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+          sudo truncate -s "${root_size}"G /root.img
+          sudo losetup /dev/loop6 /mnt/mnt.img
+          sudo losetup /dev/loop7 /root.img
+          sudo pvcreate /dev/loop6
+          sudo pvcreate /dev/loop7
+          sudo vgcreate github /dev/loop6 /dev/loop7
+          sudo lvcreate -n runner -l 100%FREE github
+          sudo mkfs.xfs /dev/github/runner
+          sudo mkdir -p /builder
+          sudo mount /dev/github/runner /builder
+          sudo chown -R runner.runner /builder
+          df -hT
+
+      - name: Create a mapped directory
+        id: mapped
+        working-directory: /builder
+        run: |
+          df -hT ${PWD}
+          mkdir -p /builder/{kernel,output}
+          ln -sf /builder/kernel /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/kernel
+          ln -sf /builder/output /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/output
+          echo "status=success" >> ${GITHUB_OUTPUT}
+          
+      - name: Compile the kernel for Amlogic s9xxx
+        uses: v2clash/kernel@main
+        with:
+          build_target: kernel
+          kernel_source: ${{ inputs.kernel_source }}
+          kernel_version: 5.15.183
+          kernel_auto: ${{ inputs.kernel_auto }}
+          delete_source: ${{ inputs.delete_source }}
+          kernel_package: ${{ inputs.kernel_package }}
+          kernel_sign: ${{ inputs.kernel_sign }}
+          kernel_toolchain: ${{ inputs.kernel_toolchain }}
+          compress_format: ${{ inputs.compress_format }}
+          silent_log: ${{ inputs.silent_log }}
+
+      - name: Upload Kernel to Release
+        uses: ncipollo/release-action@main
+        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        with:
+          name: Kernel_Stable
+          tag: kernel_stable
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          token: ${{ secrets.GH_TOKEN }}
+          body: |
+            - 这是`稳定版`内核，可以在 Armbian 和 OpenWrt 里使用。
+
+  Build_Kernel61:
+    needs: [Checka]   
+    if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates == 'true'}}
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialization environment
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q) 2>/dev/null
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+          sudo swapoff -a
+          sudo rm -f /swapfile /mnt/swapfile
+          sudo -E apt-get -y update
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y install $(curl -fsSL https://tinyurl.com/ubuntu2204-build-armbian)
+          sudo -E systemctl daemon-reload
+          #sudo -E apt-get -y full-upgrade
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Create simulated physical disk
+        id: disk
+        run: |
+          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+          sudo truncate -s "${root_size}"G /root.img
+          sudo losetup /dev/loop6 /mnt/mnt.img
+          sudo losetup /dev/loop7 /root.img
+          sudo pvcreate /dev/loop6
+          sudo pvcreate /dev/loop7
+          sudo vgcreate github /dev/loop6 /dev/loop7
+          sudo lvcreate -n runner -l 100%FREE github
+          sudo mkfs.xfs /dev/github/runner
+          sudo mkdir -p /builder
+          sudo mount /dev/github/runner /builder
+          sudo chown -R runner.runner /builder
+          df -hT
+
+      - name: Create a mapped directory
+        id: mapped
+        working-directory: /builder
+        run: |
+          df -hT ${PWD}
+          mkdir -p /builder/{kernel,output}
+          ln -sf /builder/kernel /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/kernel
+          ln -sf /builder/output /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/output
+          echo "status=success" >> ${GITHUB_OUTPUT}
+          
+      - name: Compile the kernel for Amlogic s9xxx
+        uses: v2clash/kernel@main
+        with:
+          build_target: kernel
+          kernel_source: ${{ inputs.kernel_source }}
+          kernel_version: 6.1.139
+          kernel_auto: ${{ inputs.kernel_auto }}
+          delete_source: ${{ inputs.delete_source }}
+          kernel_package: ${{ inputs.kernel_package }}
+          kernel_sign: ${{ inputs.kernel_sign }}
+          kernel_toolchain: ${{ inputs.kernel_toolchain }}
+          compress_format: ${{ inputs.compress_format }}
+          silent_log: ${{ inputs.silent_log }}
+
+      - name: Upload Kernel to Release
+        uses: ncipollo/release-action@main
+        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        with:
+          name: Kernel_Stable
+          tag: kernel_stable
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          token: ${{ secrets.GH_TOKEN }}
+          body: |
+            - 这是`稳定版`内核，可以在 Armbian 和 OpenWrt 里使用。
+
+  Build_Kernel612:
+    needs: [Checka]   
+    if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates == 'true'}}
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialization environment
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q) 2>/dev/null
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+          sudo swapoff -a
+          sudo rm -f /swapfile /mnt/swapfile
+          sudo -E apt-get -y update
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y install $(curl -fsSL https://tinyurl.com/ubuntu2204-build-armbian)
+          sudo -E systemctl daemon-reload
+          #sudo -E apt-get -y full-upgrade
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Create simulated physical disk
+        id: disk
+        run: |
+          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+          sudo truncate -s "${root_size}"G /root.img
+          sudo losetup /dev/loop6 /mnt/mnt.img
+          sudo losetup /dev/loop7 /root.img
+          sudo pvcreate /dev/loop6
+          sudo pvcreate /dev/loop7
+          sudo vgcreate github /dev/loop6 /dev/loop7
+          sudo lvcreate -n runner -l 100%FREE github
+          sudo mkfs.xfs /dev/github/runner
+          sudo mkdir -p /builder
+          sudo mount /dev/github/runner /builder
+          sudo chown -R runner.runner /builder
+          df -hT
+
+      - name: Create a mapped directory
+        id: mapped
+        working-directory: /builder
+        run: |
+          df -hT ${PWD}
+          mkdir -p /builder/{kernel,output}
+          ln -sf /builder/kernel /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/kernel
+          ln -sf /builder/output /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/output
+          echo "status=success" >> ${GITHUB_OUTPUT}
+          
+      - name: Compile the kernel for Amlogic s9xxx
+        uses: v2clash/kernel@main
+        with:
+          build_target: kernel
+          kernel_source: ${{ inputs.kernel_source }}
+          kernel_version: 6.12.29
+          kernel_auto: ${{ inputs.kernel_auto }}
+          delete_source: ${{ inputs.delete_source }}
+          kernel_package: ${{ inputs.kernel_package }}
+          kernel_sign: ${{ inputs.kernel_sign }}
+          kernel_toolchain: ${{ inputs.kernel_toolchain }}
+          compress_format: ${{ inputs.compress_format }}
+          silent_log: ${{ inputs.silent_log }}
+
+      - name: Upload Kernel to Release
+        uses: ncipollo/release-action@main
+        if: env.PACKAGED_STATUS == 'success' && !cancelled()
+        with:
+          name: Kernel_Stable
+          tag: kernel_stable
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          token: ${{ secrets.GH_TOKEN }}
+          body: |
+            - 这是`稳定版`内核，可以在 Armbian 和 OpenWrt 里使用。
+
+  Build_Kernel66:
+    needs: [Checka]   
+    if: ${{ needs.Checka.outputs.output != 'hello' || github.event.inputs.checkupdates == 'true'}}
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialization environment
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q) 2>/dev/null
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+          sudo swapoff -a
+          sudo rm -f /swapfile /mnt/swapfile
+          sudo -E apt-get -y update
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y install $(curl -fsSL https://tinyurl.com/ubuntu2204-build-armbian)
+          sudo -E systemctl daemon-reload
+          #sudo -E apt-get -y full-upgrade
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo timedatectl set-timezone "${TZ}"
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Create simulated physical disk
+        id: disk
+        run: |
+          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+          sudo truncate -s "${root_size}"G /root.img
+          sudo losetup /dev/loop6 /mnt/mnt.img
+          sudo losetup /dev/loop7 /root.img
+          sudo pvcreate /dev/loop6
+          sudo pvcreate /dev/loop7
+          sudo vgcreate github /dev/loop6 /dev/loop7
+          sudo lvcreate -n runner -l 100%FREE github
+          sudo mkfs.xfs /dev/github/runner
+          sudo mkdir -p /builder
+          sudo mount /dev/github/runner /builder
+          sudo chown -R runner.runner /builder
+          df -hT
+
+      - name: Create a mapped directory
+        id: mapped
+        working-directory: /builder
+        run: |
+          df -hT ${PWD}
+          mkdir -p /builder/{kernel,output}
+          ln -sf /builder/kernel /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/kernel
+          ln -sf /builder/output /home/runner/work/_actions/v2clash/kernel/main/compile-kernel/output
+          echo "status=success" >> ${GITHUB_OUTPUT}
+          
+      - name: Compile the kernel for Amlogic s9xxx
+        uses: v2clash/kernel@main
+        with:
+          build_target: kernel
+          kernel_source: ${{ inputs.kernel_source }}
+          kernel_version: 6.6.91
+          kernel_auto: ${{ inputs.kernel_auto }}
+          delete_source: ${{ inputs.delete_source }}
+          kernel_package: ${{ inputs.kernel_package }}
+          kernel_sign: ${{ inputs.kernel_sign }}
+          kernel_toolchain: ${{ inputs.kernel_toolchain }}
+          compress_format: ${{ inputs.compress_format }}
+          silent_log: ${{ inputs.silent_log }}
 
       - name: Upload Kernel to Release
         uses: ncipollo/release-action@main
@@ -161,7 +662,7 @@ jobs:
  # //////////////////////////////////////////////////////////////////////////////////////////////
   Cleaning:
     if: ${{ always() }}
-    needs: [Checka,Build_Kernel]    
+    needs: [Checka,Build_Kernel54,Build_Kernel510,Build_Kernel515,Build_Kernel61,Build_Kernel612,Build_Kernel66]    
     runs-on: ubuntu-latest
     steps:  
       - name: Delete workflow runs
