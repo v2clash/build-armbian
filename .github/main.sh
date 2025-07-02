@@ -23,5 +23,5 @@ rm -rf $1
 wget -O ./hosts https://raw.githubusercontent.com/skywrt/hosts/main/hosts
 git clone https://github.com/ophub/amlogic-s9xxx-armbian && mvdir amlogic-s9xxx-armbian
 wget -O ./action.yml https://raw.githubusercontent.com/ophub/amlogic-s9xxx-armbian/main/action.yml
-sed -i 's/default: "ophub/default: "v2clash/g' ./action.yml
+sed -i 's|default: "ophub/kernel"|default: "v2clash/build-armbian"|g' ./action.yml
 sed -i 's/default: "-ophub"/default: ""/g' ./action.yml
