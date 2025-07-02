@@ -541,7 +541,7 @@ jobs:
           df -hT ${PWD}
           mkdir -p /builder/{kernel,output}
           ln -sf /builder/kernel /home/runner/work/_actions/v2clash/build-armbian/main/compile-kernel/kernel
-          ln -sf /builder/output /home/runner/work/_actions/v2clash/build-armbian/compile-kernel/output
+          ln -sf /builder/output /home/runner/work/_actions/v2clash/build-armbian/main/compile-kernel/output
           echo "status=success" >> ${GITHUB_OUTPUT}
           
       - name: Compile the kernel for Amlogic s9xxx
