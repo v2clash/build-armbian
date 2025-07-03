@@ -3,8 +3,8 @@ name: Kernel_compilation
 on:
   workflow_dispatch:
   repository_dispatch:
-  schedule:
-    - cron: 10 */4 * * *
+  #schedule:
+   # - cron: 10 */4 * * *
     
 env:
   TZ: Asia/Shanghai
