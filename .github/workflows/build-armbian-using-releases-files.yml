@@ -30,6 +30,8 @@ on:
         type: choice
         options:
           - 6.6.y_6.12.y
+  schedule:
+    - cron: 0 18 * * *
 
 env:
   TZ: America/New_York
