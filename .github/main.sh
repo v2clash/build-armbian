@@ -1,7 +1,9 @@
 #!/bin/bash
 
+cp -f ./build-armbian/armbian-files/common-files/etc/model_database.conf /tmp/model_database.conf.bak
+
 shopt -s extglob
-rm -rfv !(LICENSE|README.md|main.sh|rebuild|recompile|model_database.conf)
+rm -rfv !(LICENSE|README.md|main.sh|rebuild|recompile)
 shopt -u extglob
 
 function git_sparse_clone() {
@@ -26,3 +28,6 @@ sed -i 's|default: "ophub/kernel"|default: "v2clash/build-armbian"|g' ./action.y
 sed -i 's|default: "6.1.y_6.12.y"|default: "6.6.y_6.12.y"|g' ./action.yml
 sed -i 's/default: "-ophub"/default: ""/g' ./action.yml
 sed -i 's|custom_name="-ophub"|custom_name=""|g' ./recompile
+
+mkdir -p ./build-armbian/armbian-files/common-files/etc/
+cp -f /tmp/model_database.conf.bak ./build-armbian/armbian-files/common-files/etc/model_database.conf
