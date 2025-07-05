@@ -26,9 +26,9 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
-          status=$(git status -sb)
-          if [ "$status" == "## master...origin/master" ];then
-              echo "nothing to commit, working tree clean"
+          if [ -z "$(git status --porcelain)" ]; then
+              echo "没有文件变更，无需提交"
+              exit 0
           else
           Emoji=("🎉" "🤞" "✨" "🎁" "🎈" "🎄" "🎨" "💋" "🍓" "🍕" "🍉" "💐" "🌴" "🚀" "🛸" "🗽" "⛅" "🌈" "🔥" "⛄" "🐶" "🏅" "🦄" "🐤")
           git add .
