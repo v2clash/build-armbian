@@ -9,6 +9,8 @@ on:
         required: false
         default: "bookworm"
         type: choice
+        options:
+          - bookworm
       armbian_board:
         description: "Select device board."
         required: false
