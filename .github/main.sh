@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cp -f ./build-armbian/armbian-files/common-files/etc/model_database.conf /tmp/model_database.conf.bak
-
 shopt -s extglob
 rm -rfv !(LICENSE|README.md|main.sh|rebuild|recompile)
 shopt -u extglob
