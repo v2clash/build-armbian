@@ -9,11 +9,6 @@ on:
         required: false
         default: "bookworm"
         type: choice
-        options:
-          - jammy
-          - noble
-          - bookworm
-          - bullseye
       armbian_board:
         description: "Select device board."
         required: false
