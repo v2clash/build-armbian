@@ -29,5 +29,3 @@ sed -i 's|default: "6.1.y_6.12.y"|default: "6.6.y_6.12.y"|g' ./action.yml
 sed -i 's/default: "-ophub"/default: ""/g' ./action.yml
 sed -i 's|custom_name="-ophub"|custom_name=""|g' ./recompile
 sed -i 's|kernel_repo="https://github.com/ophub/kernel"|kernel_repo="https://github.com/v2clash/build-armbian"|g' ./rebuild
-mkdir -p ./build-armbian/armbian-files/common-files/etc/
-cp -f /tmp/model_database.conf.bak ./build-armbian/armbian-files/common-files/etc/model_database.conf
