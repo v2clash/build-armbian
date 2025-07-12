@@ -155,8 +155,9 @@ jobs:
             - Default password: 1234
             - Install command: armbian-install
             - Update command: armbian-update
-            ### Armbian Image Verification
-            - sha256sum
+            ### 本项目目前只编译以下设备固件
+            - Phicomm-N1
+            - OEC-turbo
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
