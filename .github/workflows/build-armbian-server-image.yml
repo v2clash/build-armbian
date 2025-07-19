@@ -146,7 +146,6 @@ jobs:
           tag: ${{ steps.clean.outputs.build_tag }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
           allowUpdates: true
-          removeArtifacts: false
           replacesArtifacts: true
           token: ${{ secrets.GH_TOKEN }}
           body: |
