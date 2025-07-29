@@ -73,18 +73,32 @@ change_source_list() {
     echo -e "${INFO} The system release is: [ ${VERSION_CODENAME} ]"
 
     case "${VERSION_CODENAME}" in
-    bullseye | bookworm | trixie)
+    buster | bullseye | bookworm | trixie)
+        declare -a suites=("${VERSION_CODENAME}" "${VERSION_CODENAME}-updates")
+        declare -a security_suites=("${VERSION_CODENAME}-security")
+        declare -a components=(main contrib non-free)
+
+        if [[ "${VERSION_CODENAME}" == "buster" || "${VERSION_CODENAME}" == "bullseye" ]]; then
+            security_suites=("${VERSION_CODENAME}/updates")
+        else
+            suites+=("${VERSION_CODENAME}-backports")
+        fi
+
+        if [[ "${VERSION_CODENAME}" != "buster" && "${VERSION_CODENAME}" != "bullseye" ]]; then
+            components+=("non-free-firmware")
+        fi
+
         cat >${armbian_source_file} <<EOF
             Types: deb
             URIs: http://${MIRROR_URL}/debian
-            Suites: ${VERSION_CODENAME} ${VERSION_CODENAME}-updates ${VERSION_CODENAME}-backports
-            Components: main contrib non-free non-free-firmware
+            Suites: ${suites[@]}
+            Components: ${components[@]}
             Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
             Types: deb
             URIs: http://${MIRROR_URL}/debian-security
-            Suites: ${VERSION_CODENAME}-security
-            Components: main contrib non-free non-free-firmware
+            Suites: ${security_suites[@]}
+            Components: ${components[@]}
             Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 EOF
