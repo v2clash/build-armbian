@@ -1456,9 +1456,33 @@ ampart /dev/mmcblk2
 ```shell
 dd if=/dev/mmcblk2 of=bootloader.bin bs=1M count=4 skip=0
 dd if=/dev/mmcblk2 of=reserved.bin bs=1M count=8 skip=36
-dd if=/dev/mmcblk2 of=env.bin bs=1M count=8 skip=628
+dd if=/dev/mmcblk2 of=env.bin bs=1M count=1 skip=628
 ```
-备份的文件放在 [u-boot](https://github.com/ophub/u-boot) 仓库对应的目录下 [u-boot/amlogic/bootloader/a311d-oes](https://github.com/ophub/u-boot/tree/main/u-boot/amlogic/bootloader/a311d-oes)
+
+备份的文件放在 [u-boot](https://github.com/ophub/u-boot) 仓库对应的目录 [u-boot/amlogic/bootloader/a311d-oes](https://github.com/ophub/u-boot/tree/main/u-boot/amlogic/bootloader/a311d-oes) 里面。
+
+细心的你是否发现了 reserved 分区有 64MB 大小，为什么我们只备份了 8MB 的大小呢？这是因为在 `oes(a311d)` 设备上，`reserved` 分区的前 8MB 是关键数据，后续的 56MB 是空白的，可以不备份。具体查看方法：
+
+```shell
+# 首先，备份 reserved 分区完整的 64MB 大小的文件：
+dd if=/dev/mmcblk2 of=reserved_64M.bin bs=1M count=64 skip=36
+
+# 然后，把我们备份出来的 reserved_64M.bin 文件的前 8MB 提取出来：
+dd if=reserved_64M.bin of=reserved_first_8M.bin bs=1M count=8
+
+# 接下来，查看十六进制内容：
+hexdump -C reserved_first_8M.bin | less
+
+# 现在，我们查看返回结果最后几行的内容：
+0071ffd0  4c 5e a8 1f fc 5b 5b 98  ae ef b0 97 0c 3b e8 c2  |L^...[[......;..|
+0071ffe0  c8 e0 b2 74 3d 67 d5 3d  24 7b 63 b7 c7 73 f5 d8  |...t=g.=${c..s..|
+0071fff0  a1 b8 38 a7 57 d6 b4 b5  e8 1c ba c0 07 0f f5 79  |..8.W..........y|
+00720000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00800000
+```
+
+分析输出结果，最后一个包含非零数据的行的地址是 `0071fff0`。从地址 `00720000` 开始，所有内容都变成了 `00`（零）。hexdump 工具使用 （`*`） 来表示重复的行，这意味着从 `00720000` 一直到 `00800000` (即8MB的末尾) 都是零。把效数据地址 `0x00720000` 换算成十进制是 `7,471,104` 字节，也就是 `7471104 / 1024 / 1024 = 7.125 MB` 大小，所以我们取个整备份 8MB 即可。另外 env 分区也是只有前面 80KB 是有效数据，后面都是空白的，所以我们只备份了 1MB 的内容。
 
 ##### 12.15.3.3 添加特殊分区写入文件
 
