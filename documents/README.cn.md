@@ -91,6 +91,9 @@ Github Actions 是 Microsoft 推出的一项服务，它提供了性能配置非
       - [12.15.1 添加设备配置文件](#12151-添加设备配置文件)
       - [12.15.2 添加系统文件](#12152-添加系统文件)
       - [12.15.3 添加 u-boot 文件](#12153-添加-u-boot-文件)
+        - [12.15.3.1 查看分区信息布局情况](#121531-查看分区信息布局情况)
+        - [12.15.3.2 备份关键分区](#121532-备份关键分区)
+        - [12.15.3.3 添加特殊分区写入文件](#121533-添加特殊分区写入文件)
       - [12.15.4 添加流程控制文件](#12154-添加流程控制文件)
     - [12.16 如何解决写入 eMMC 时 I/O 错误的问题](#1216-如何解决写入-emmc-时-io-错误的问题)
     - [12.17 如何解决 Bullseye 版本没有声音的问题](#1217-如何解决-bullseye-版本没有声音的问题)
@@ -1417,6 +1420,49 @@ armbian-install
 `Rockchip` 和 `Allwinner` 系列的设备，为每个设备添加以 `BOARD` 命名的独立 [u-boot](https://github.com/ophub/u-boot/tree/main/u-boot) 文件目录，对应的系列文件放在此目录中。
 
 构建 Armbian 镜像时，这些 u-boot 文件将根据 [/etc/model_database.conf](../build-armbian/armbian-files/common-files/etc/model_database.conf) 中的配置，由 rebuild 脚本写入对应的 Armbian 镜像文件中。
+
+对于能够使用标准 U-Boot 文件的设备，我们优先推荐您直接使用。然而，部分设备可能无法编译或获取到适用的 U-Boot。如果这类设备上已经可以正常运行 Ubuntu 等其他 Linux 系统，您可以尝试一种保留与引导相关的关键分区，来安装 Armbian 或 OpenWrt 的方法。通常，需要保留的关键分区包括 `bootloader`、`reserved` 和 `env`。
+
+这些分区也可以备份出来，然后在制作新的 Armbian 或 OpenWrt 镜像时，将这些备份好的分区数据写回到新镜像的相应位置。这种包含原系统引导分区的新镜像制作完成后，可以直接使用 `dd` 命令将整个镜像写入 eMMC，也可以使用相应系统的内置工具进行安装，例如 Armbian 的 `armbian-install` 命令，或 OpenWrt 的 `晶晨宝盒` 插件。
+
+目前使用这种方法的设备有 [oes(a311d)](https://github.com/ophub/amlogic-s9xxx-armbian/issues/2666)，[oes-plus(s922x)](https://github.com/ophub/amlogic-s9xxx-armbian/issues/3029)，[oec-turbo(rk3566)](https://github.com/ophub/amlogic-s9xxx-armbian/pull/2736)，下面我们以 `oes(a311d)` 设备为例，具体说明操作流程。
+
+##### 12.15.3.1 查看分区信息布局情况
+
+```shell
+ampart /dev/mmcblk2
+
+# 得到的分区信息如下：
+# ===================================================================================
+# IO seek EPT: Seeking to 37748736
+# EPT report: 20 partitions in the table:
+# ===================================================================================
+# ID| name            |          offset|(   human)|            size|(   human)| masks
+# -----------------------------------------------------------------------------------
+#  0: bootloader                      0 (   0.00B)           400000 (   4.00M)      0
+#     (GAP)                                                 2000000 (  32.00M)
+#  1: reserved                  2400000 (  36.00M)          4000000 (  64.00M)      0
+#     (GAP)                                                  800000 (   8.00M)
+#  2: cache                     6c00000 ( 108.00M)         20000000 ( 512.00M)      2
+#     (GAP)                                                  800000 (   8.00M)
+#  3: env                      27400000 ( 628.00M)           800000 (   8.00M)      0
+#     (GAP)                                                  800000 (   8.00M)
+#  ... other partitions ...
+# ===================================================================================
+```
+
+##### 12.15.3.2 备份关键分区
+
+```shell
+dd if=/dev/mmcblk2 of=bootloader.bin bs=1M count=4 skip=0
+dd if=/dev/mmcblk2 of=reserved.bin bs=1M count=8 skip=36
+dd if=/dev/mmcblk2 of=env.bin bs=1M count=8 skip=628
+```
+备份的文件放在 [u-boot](https://github.com/ophub/u-boot) 仓库对应的目录下 [u-boot/amlogic/bootloader/a311d-oes](https://github.com/ophub/u-boot/tree/main/u-boot/amlogic/bootloader/a311d-oes)
+
+##### 12.15.3.3 添加特殊分区写入文件
+
+具体的实现细节，可以参考文件 [/etc/armbian-board-release.conf](https://github.com/ophub/amlogic-s9xxx-armbian/blob/main/build-armbian/armbian-files/different-files/a311d-oes/rootfs/etc/armbian-board-release.conf) 中定义的 `write_board_bootloader` 函数。该函数会在镜像重构（rebuild）过程中被调用。此外，该配置文件也是一个功能强大的设备定制中心。您不仅可以通过 `skip_mb="700"` 等参数来精确控制镜像分区的布局与大小，还可以添加自定义脚本，以实现对内核或其他系统文件的特殊处理。以后所有针对特定设备的高级定制化操作都将集中在此文件中进行统一管理，从而确保配置的清晰、高效与便捷。
 
 #### 12.15.4 添加流程控制文件
 

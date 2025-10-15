@@ -91,6 +91,9 @@ GitHub Actions is a service launched by Microsoft that provides a virtual server
       - [12.15.1 Add Device Configuration File](#12151-add-device-configuration-file)
       - [12.15.2 Add System Files](#12152-add-system-files)
       - [12.15.3 Add u-boot Files](#12153-add-u-boot-files)
+        - [12.15.3.1 Check the Partition Layout](#121531-check-the-partition-layout)
+        - [12.15.3.2 Back Up Key Partitions](#121532-back-up-key-partitions)
+        - [12.15.3.3 Add a Special Partition Writing File](#121533-add-a-special-partition-writing-file)
       - [12.15.4 Add Process Control Files](#12154-add-process-control-files)
     - [12.16 How to Resolve the Issue of I/O Errors While Writing to eMMC](#1216-how-to-resolve-the-issue-of-io-errors-while-writing-to-emmc)
     - [12.17 How to Solve the Issue of No Sound in the Bullseye Version](#1217-how-to-solve-the-issue-of-no-sound-in-the-bullseye-version)
@@ -1424,6 +1427,49 @@ If individual devices have special differential setting requirements, add an ind
 `Rockchip` and `Allwinner` series devices, add an independent [u-boot](https://github.com/ophub/u-boot/tree/main/u-boot) file directory named after `BOARD` for each device, and the corresponding series files are placed in this directory.
 
 During the Armbian image construction, these u-boot files will be written into the corresponding Armbian image files by the rebuild script according to the configuration in [/etc/model_database.conf](../build-armbian/armbian-files/common-files/etc/model_database.conf).
+
+For devices that can use standard U-Boot files, we highly recommend using them directly. However, for some devices, it may not be possible to compile or obtain a suitable U-Boot. If such a device can already run other Linux systems like Ubuntu, you can try a method that preserves key boot-related partitions to install Armbian or OpenWrt. Typically, the critical partitions that need to be preserved include `bootloader`, `reserved`, and `env`.
+
+These partitions can be backed up and then written back to their corresponding locations when creating a new Armbian or OpenWrt image. Once this new image, which contains the original system's boot partitions, is created, you can either write the entire image to the eMMC directly using the `dd` command or use the built-in installation tools of the respective systems. For example, you can use Armbian's `armbian-install` command or the `Amlogic Service` plugin in OpenWrt.
+
+Currently, devices using this method include [oes(a311d)](https://github.com/ophub/amlogic-s9xxx-armbian/issues/2666), [oes-plus(s922x)](https://github.com/ophub/amlogic-s9xxx-armbian/issues/3029), and [oec-turbo(rk3566)](https://github.com/ophub/amlogic-s9xxx-armbian/pull/2736). We will now use the `oes(a311d)` device as an example to detail the operational procedure.
+
+##### 12.15.3.1 Check the Partition Layout
+
+```shell
+ampart /dev/mmcblk2
+
+# The partition information obtained is as follows:
+# ===================================================================================
+# IO seek EPT: Seeking to 37748736
+# EPT report: 20 partitions in the table:
+# ===================================================================================
+# ID| name            |          offset|(   human)|            size|(   human)| masks
+# -----------------------------------------------------------------------------------
+#  0: bootloader                      0 (   0.00B)           400000 (   4.00M)      0
+#     (GAP)                                                 2000000 (  32.00M)
+#  1: reserved                  2400000 (  36.00M)          4000000 (  64.00M)      0
+#     (GAP)                                                  800000 (   8.00M)
+#  2: cache                     6c00000 ( 108.00M)         20000000 ( 512.00M)      2
+#     (GAP)                                                  800000 (   8.00M)
+#  3: env                      27400000 ( 628.00M)           800000 (   8.00M)      0
+#     (GAP)                                                  800000 (   8.00M)
+#  ... other partitions ...
+# ===================================================================================
+```
+
+##### 12.15.3.2 Back Up Key Partitions
+
+```shell
+dd if=/dev/mmcblk2 of=bootloader.bin bs=1M count=4 skip=0
+dd if=/dev/mmcblk2 of=reserved.bin bs=1M count=8 skip=36
+dd if=/dev/mmcblk2 of=env.bin bs=1M count=8 skip=628
+```
+Place the backed-up files in the corresponding directory of the [u-boot](https://github.com/ophub/u-boot) repository: [u-boot/amlogic/bootloader/a311d-oes](https://github.com/ophub/u-boot/tree/main/u-boot/amlogic/bootloader/a311d-oes).
+
+##### 12.15.3.3 Add a Special Partition Writing File
+
+For specific implementation details, refer to the `write_board_bootloader` function defined in the file [/etc/armbian-board-release.conf](https://github.com/ophub/amlogic-s9xxx-armbian/blob/main/build-armbian/armbian-files/different-files/a311d-oes/rootfs/etc/armbian-board-release.conf). This function is called during the image rebuild process. Additionally, this configuration file serves as a powerful device customization hub. You can not only precisely control the layout and size of image partitions using parameters like `skip_mb="700"`, but also add custom scripts to perform special operations on the kernel or other system files. In the future, all advanced, device-specific customizations will be centrally managed in this file to ensure clear, efficient, and convenient configuration.
 
 #### 12.15.4 Add Process Control Files
 
