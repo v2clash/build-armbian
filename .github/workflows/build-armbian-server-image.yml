@@ -14,7 +14,7 @@ on:
       armbian_board:
         description: "Select device board."
         required: false
-        default: "s905d"
+        default: "wxy-oect"
         type: choice
         options:
           - s905d
@@ -22,9 +22,10 @@ on:
       armbian_kernel:
         description: "Select kernel version."
         required: false
-        default: "6.6.y_6.12.y"
+        default: "6.1.y"
         type: choice
         options:
+          - 6.1.y
           - 6.6.y_6.12.y
 
 env:
