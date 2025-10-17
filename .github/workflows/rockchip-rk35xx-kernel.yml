@@ -18,7 +18,7 @@ on:
       kernel_version:
         description: "Select kernel version"
         required: false
-        default: "5.10.y"
+        default: "6.1.y"
         type: choice
         options:
           - 5.10.y
