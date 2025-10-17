@@ -7,14 +7,18 @@ on:
       kernel_source:
         description: "Select the kernel source"
         required: false
-        default: "unifreq/linux-6.1.y-rockchip"
+        default: "unifreq/linux-5.10.y-rk35xx"
         type: choice
         options:
+          - unifreq/linux-5.10.y-rk35xx
           - unifreq/linux-6.1.y-rockchip
+          - codesnas/linux-5.10.y-rk35xx
+          - codesnas/linux-6.1.y-rockchip
+          - armbian/linux-rockchip@rk-6.1-rkr5.1
       kernel_version:
         description: "Select kernel version"
         required: false
-        default: "6.1.y"
+        default: "5.10.y"
         type: choice
         options:
           - 5.10.y
@@ -41,6 +45,7 @@ on:
         type: choice
         options:
           - all
+          - dtbs
       kernel_toolchain:
         description: "Select the compilation toolchain"
         required: false
@@ -48,6 +53,8 @@ on:
         type: choice
         options:
           - gcc
+          - gcc-14.2
+          - gcc-14.3
       compress_format:
         description: "Set the initrd compression format"
         required: false
@@ -55,6 +62,9 @@ on:
         type: choice
         options:
           - xz
+          - gzip
+          - zstd
+          - lzma
       kernel_sign:
         description: "Set the kernel custom signature"
         required: false
@@ -62,6 +72,16 @@ on:
         type: choice
         options:
           - -rk35xx
+          - -happy-new-year
+          - -dragon-boat-festival
+          - -mid-autumn-festival
+          - -happy-national-day
+          - -merry-christmas
+          - -spring-plowing
+          - -summer-growing
+          - -autumn-harvesting
+          - -winter-storing
+          - -yourname
       kernel_config:
         description: "Set the path of kernel .config"
         required: false
@@ -134,8 +154,8 @@ jobs:
         run: |
           df -hT ${PWD}
           mkdir -p /builder/{kernel,output}
-          ln -sf /builder/kernel /home/runner/work/_actions/v2clash/build-armbian/main/compile-kernel/kernel
-          ln -sf /builder/output /home/runner/work/_actions/v2clash/build-armbian/main/compile-kernel/output
+          ln -sf /builder/kernel /home/runner/work/_actions/ophub/amlogic-s9xxx-armbian/compile-kernel/kernel
+          ln -sf /builder/output /home/runner/work/_actions/ophub/amlogic-s9xxx-armbian/main/compile-kernel/output
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Compile the kernel [ ${{ inputs.kernel_version }} ]
