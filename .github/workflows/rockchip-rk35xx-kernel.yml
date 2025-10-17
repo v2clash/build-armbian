@@ -62,6 +62,7 @@ on:
         type: choice
         options:
           - -happy-new-year
+          - 
       kernel_config:
         description: "Set the path of kernel .config"
         required: false
