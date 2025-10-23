@@ -96,7 +96,7 @@ jobs:
           ln -sf /builder/build /home/runner/work/_actions/v2clash/build-armbian/main/build
           echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Compile Armbian [ ${{ inputs.set_release }} ]
+      - name: Compile Armbian [ ${{ inputs.armbian_board }} ]
         id: compile
         working-directory: /builder
         if: ${{ steps.down.outputs.status }} == 'success' && !cancelled()
