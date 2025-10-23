@@ -127,6 +127,11 @@ jobs:
           sudo mount /dev/github/runner /builder
           sudo chown -R runner.runner /builder
           df -Th
+      - name: Download kernel config files
+        run: |
+          mkdir -p kernel-config/release/rk35xx
+          wget -O kernel-config/release/rk35xx/config-5.10 https://raw.githubusercontent.com/ophub/kernel/main/kernel-config/release/rk35xx/config-5.10
+          wget -O kernel-config/release/rk35xx/config-6.1 https://raw.githubusercontent.com/ophub/kernel/main/kernel-config/release/rk35xx/config-6.1
       - name: Create a mapped directory
         id: mapped
         working-directory: /builder
