@@ -11,9 +11,9 @@ jobs:
   Checka:
     runs-on: ubuntu-latest
     env:
-      REPO_URL_Kernel61: https://github.com/unifreq/linux-6.1.y-rockchip
-      REPO_BRANCH_Kernel61: main
-      REPO_PATH_Kernel61: "Kernel_61_rockchip"
+      REPO_URL_Kernel61_rockchip: https://github.com/unifreq/linux-6.1.y-rockchip
+      REPO_BRANCH_Kernel61_rockchip: main
+      REPO_PATH_Kernel61_rockchip: "Kernel_61_rockchip"
       
     outputs:
       unifreq: ${{ steps.outputunifreq.outputs.unifreq }}
