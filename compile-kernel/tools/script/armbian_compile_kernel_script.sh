@@ -262,7 +262,7 @@ toolchain_check() {
         # Set cross compilation parameters
         export PATH="${path_os_variable}"
         export CROSS_COMPILE="aarch64-linux-gnu-"
-        export CC="clang"
+        export CC="ccache clang"
         export LD="ld.lld"
         export MFLAGS=" LLVM=1 LLVM_IAS=1 "
     else
@@ -297,7 +297,7 @@ toolchain_check() {
 
         # Set cross compilation parameters
         export CROSS_COMPILE="${toolchain_path}/${gun_file//.tar.xz/}/bin/aarch64-none-linux-gnu-"
-        export CC="${CROSS_COMPILE}gcc"
+        export CC="ccache ${CROSS_COMPILE}gcc"
         export LD="${CROSS_COMPILE}ld.bfd"
         export MFLAGS=""
     fi
