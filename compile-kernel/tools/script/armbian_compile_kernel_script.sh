@@ -19,6 +19,7 @@
 #================================= Functions list =================================
 #
 # error_msg          : Output error message
+# compile_log        : Set up the compile kernel log file
 #
 # init_var           : Initialize all variables
 # toolchain_check    : Check and install the toolchain
@@ -81,6 +82,8 @@ compress_format="xz"
 delete_source="false"
 # Set make log silent output (recommended to use 'true' when github runner has insufficient space)
 silent_log="false"
+# Set whether to clear ccache before compiling the kernel, options: [ true / false ]
+ccache_clear="false"
 
 # Compile toolchain download mirror, run on Armbian
 dev_repo="https://github.com/ophub/kernel/releases/download/dev"
@@ -105,11 +108,22 @@ error_msg() {
     exit 1
 }
 
+compile_log() {
+    echo -e "${STEPS} Initializing kernel compilation log..."
+    compile_logfile="/var/log/kernel_compile_$(date +%Y-%m-%d_%H-%M-%S).log"
+    if touch "${compile_logfile}" 2>/dev/null; then
+        echo -e "${INFO} Kernel compilation log will be saved to: [ ${compile_logfile} ]"
+        exec &> >(tee -a "${compile_logfile}")
+    else
+        echo -e "${WARNING} Failed to create log file [ ${compile_logfile} ]. Logging to console only."
+    fi
+}
+
 init_var() {
     echo -e "${STEPS} Start Initializing Variables..."
 
     # If it is followed by [ : ], it means that the option requires a parameter value
-    local options="k:a:n:m:p:r:t:c:d:s:"
+    local options="k:a:n:m:p:r:t:c:d:s:z:"
     parsed_args=$(getopt -o "${options}" -- "${@}")
     [[ ${?} -ne 0 ]] && error_msg "Parameter parsing failed."
     eval set -- "${parsed_args}"
@@ -180,12 +194,12 @@ init_var() {
                 error_msg "Invalid -t parameter [ ${2} ]!"
             fi
             ;;
-        -c | --Compress)
+        -z | --CompressFormat)
             if [[ -n "${2}" ]]; then
                 compress_format="${2}"
                 shift 2
             else
-                error_msg "Invalid -c parameter [ ${2} ]!"
+                error_msg "Invalid -z parameter [ ${2} ]!"
             fi
             ;;
         -d | --DeleteSource)
@@ -202,6 +216,14 @@ init_var() {
                 shift 2
             else
                 error_msg "Invalid -s parameter [ ${2} ]!"
+            fi
+            ;;
+        -c | --CcacheClear)
+            if [[ -n "${2}" ]]; then
+                ccache_clear="${2}"
+                shift 2
+            else
+                error_msg "Invalid -c parameter [ ${2} ]!"
             fi
             ;;
         --)
@@ -486,6 +508,12 @@ compile_env() {
     # Make clean/mrproper
     make ${MAKE_SET_STRING} CC="${CC}" LD="${LD}" mrproper
 
+    # Clear ccache if enabled
+    [[ "${ccache_clear}" =~ ^(true|yes)$ ]] && {
+        echo -e "${INFO} Clear ccache before compiling the kernel..."
+        ccache -C 2>/dev/null
+    }
+
     # Check .config file
     if [[ ! -s ".config" ]]; then
         [[ -s "${config_path}/config-${kernel_verpatch}" ]] || error_msg "Missing [ config-${kernel_verpatch} ] template!"
@@ -606,9 +634,12 @@ generate_uinitrd() {
     cp -rf ${output_path}/modules/lib/modules/${kernel_outname} -t /usr/lib/modules
     #echo -e "${INFO} Kernel copy results in the [ /usr/lib/modules ] directory: \n$(ls -l /usr/lib/modules) \n"
 
-    # COMPRESS: [ gzip | lzma | xz | zstd ]
-    echo -e "${INFO} Set the [ ${compress_format} ] compression format for the initrd.img file."
+    # COMPRESS: [ gzip | lzma | xz | zstd | lz4 ]
     [[ "${kernel_outname}" =~ ^5.4.[0-9]+ ]] && compress_format="xz"
+    [[ "${compress_format}" =~ ^(gzip|lzma|xz|zstd|lz4)$ ]] || {
+        echo -e "${WARNING} The compression format [ ${compress_format} ] is invalid, reset to [ xz ] format."
+        compress_format="xz"
+    }
     compress_initrd_file="/etc/initramfs-tools/initramfs.conf"
     if [[ -f "${compress_initrd_file}" ]]; then
         sed -i "s|^COMPRESS=.*|COMPRESS=${compress_format}|g" ${compress_initrd_file}
@@ -799,6 +830,8 @@ loop_recompile() {
     done
 }
 
+# Output compile log
+compile_log
 # Show welcome message
 echo -e "${STEPS} Welcome to compile kernel! \n"
 echo -e "${INFO} Server running on Armbian: [ Release: ${host_release} / Host: ${arch_info} ] \n"
@@ -832,5 +865,3 @@ loop_recompile
 # Show server end information
 echo -e "${STEPS} Server space usage after compilation: \n$(df -hT ${kernel_path}) \n"
 echo -e "${SUCCESS} All process completed successfully."
-# All process completed
-wait
