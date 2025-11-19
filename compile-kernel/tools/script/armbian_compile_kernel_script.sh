@@ -103,9 +103,8 @@ export CCACHE_DIR="/root/.ccache"
 # Rewrite absolute paths to relative (Enable Host/Docker sharing)
 export CCACHE_BASEDIR="${compile_path}"
 export CCACHE_NOHASHDIR="true"
-# Relax strict checks to improve hit rate
-export CCACHE_SLOPPINESS="time_macros,file_macro,include_file_ctime,include_file_mtime"
 # Check compiler by content hash, not modification time
+export CCACHE_SLOPPINESS="time_macros,file_macro,include_file_ctime,include_file_mtime,system_headers,locale"
 export CCACHE_COMPILERCHECK="content"
 
 # Set font color
