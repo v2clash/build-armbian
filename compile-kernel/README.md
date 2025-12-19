@@ -53,7 +53,6 @@ You can compile the kernel in the official [Armbian](https://github.com/ophub/am
 | -l        | EnableLog   | Set whether to log the kernel compilation process to a log file: `/var/log/kernel_compile_*.log`. Options: `true / false`. Default value: `false` |
 | -c        | CcacheClear | Set whether to clear the cache before compiling the kernel. Options: `true / false`. Default value: `false` |
 
-
 - `sudo ./recompile`: Compile the kernel using the default configuration.
 - `sudo ./recompile -k 5.15.100`: Use the default configuration and specify the kernel version to be compiled through `-k`. Multiple versions are connected using `_` for simultaneous compilation.
 - `sudo ./recompile -k 5.15.100 -a true`: Use the default configuration and set whether to automatically upgrade to the latest kernel of the same series during kernel compilation through the `-a` parameter.
@@ -65,9 +64,9 @@ You can compile the kernel in the official [Armbian](https://github.com/ophub/am
 
 ## Compile Kernel Using GitHub Actions
 
-1. In the [Action](https://github.com/ophub/amlogic-s9xxx-armbian/actions) page, select ***`Compile the kernel`*** and click the ***`Run workflow`*** button to compile.
+1. In the [Action](https://github.com/ophub/amlogic-s9xxx-armbian/actions) page, select **_`Compile the kernel`_** and click the **_`Run workflow`_** button to compile.
 
-2. See the use of the template [compile-kernel-on-a-server.yml](../.github/workflows/compile-kernel-on-a-server.yml). The code is as follows:
+2. See the use of the template [compile-kernel-via-docker.yml](../.github/workflows/compile-kernel-via-docker.yml). The code is as follows:
 
 ```yaml
 - name: Compile the kernel
@@ -98,7 +97,6 @@ These parameters correspond to the `local compilation commands`. Please refer to
 | kernel_package   | all           | Sets the package list for making the kernel. Default value is `all`. Refer to `-m` for functionality. |
 | kernel_sign      | -ophub        | Sets the kernel custom signature. Default value is `-ophub`. Refer to `-n` for functionality. |
 | kernel_toolchain | gcc           | Sets the toolchain for compiling the kernel. Default value is `gcc`. Refer to `-t` for functionality. |
-| kernel_config    | false         | By default, use the configuration template in the [tools/config](tools/config) directory. You can set the directory for storing the kernel configuration file in your repository, such as `kernel/config_path`. The configuration templates stored in this directory must be named after the main version of the kernel, such as `config-5.10`, `config-5.15`, etc. |
 | kernel_patch     | false         | Sets the directory for custom kernel patches. |
 | auto_patch       | false         | Sets whether to use custom kernel patches. Default value is `false`. Refer to `-p` for functionality. |
 | compress_format  | xz            | Set the compression format used for initrd in the kernel. Default value is `xz`. Refer to `-z` for functionality. |
@@ -106,7 +104,6 @@ These parameters correspond to the `local compilation commands`. Please refer to
 | silent_log       | false         | Set whether to use silent mode to reduce log output when compiling the kernel. Default value is `false`. Refer to `-s` for functionality. |
 | enable_log       | false         | Set whether to log the kernel compilation process to a log file: `/var/log/kernel_compile_*.log`. Default value: `false`. Refer to `-l` for functionality. |
 | ccache_clear     | false         | Set whether to clear the cache before compiling the kernel. Default value is `false`. Refer to `-c` for functionality. |
-
 
 - ### GitHub Action Output Variables
 
@@ -150,4 +147,3 @@ Compiling OpenWrt firmware supports localization operations, and it also support
 - #### Installing the Kernel in an Existing OpenWrt System
 
 You can use the [luci-app-amlogic](https://github.com/ophub/luci-app-amlogic) plugin to install the compiled kernel into an existing OpenWrt system. For specific operation methods, please refer to: [Update OpenWrt](https://github.com/ophub/amlogic-s9xxx-openwrt/blob/main/README.md#update-openwrt).
-
