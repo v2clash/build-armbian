@@ -116,7 +116,7 @@ if [[ "${openvfd_boxid}" != "0" && "${FDT_FILE}" =~ ^meson- ]]; then
     (
         # Start OpenVFD service
         [[ "${openvfd_enable}" == "yes" ]] && armbian-openvfd "${openvfd_boxid}" >/dev/null 2>&1
-        # Some devices require a reboot to clear 'BOOT' and related messages
+        # Some devices require a restart to clear 'BOOT' and related messages
         [[ "${openvfd_restart}" == "yes" ]] && {
             armbian-openvfd "0" >/dev/null 2>&1
             sleep 3

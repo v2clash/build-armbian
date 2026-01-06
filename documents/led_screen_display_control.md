@@ -31,7 +31,7 @@ vfd_gpio_dat='0,69,0'
 # Execute the following command in the terminal to enable the openvfd service
 sed -i 's|^#*openvfd_enable=.*|openvfd_enable="yes"|g' /etc/custom_service/start_service.sh
 sed -i 's|^#*openvfd_boxid=.*|openvfd_boxid="15"|g' /etc/custom_service/start_service.sh
-# Some devices require a reboot to clear 'BOOT' and related messages, you can enable the restart option below
+# Some devices require a restart to clear 'BOOT' and related messages
 sed -i 's|^#*openvfd_restart=.*|openvfd_restart="yes"|g' /etc/custom_service/start_service.sh
 ```
 
@@ -90,7 +90,7 @@ vfd_gpio_dat='0,69,0'
 # 在终端执行以下命令启用 openvfd 服务
 sed -i 's|^#*openvfd_enable=.*|openvfd_enable="yes"|g' /etc/custom_service/start_service.sh
 sed -i 's|^#*openvfd_boxid=.*|openvfd_boxid="15"|g' /etc/custom_service/start_service.sh
-# 有些设备需要重启以清除 'BOOT' 等相关信息，可以启用下面的重启选项
+# 有些设备需要重启 OpenVFD 服务以清除 'BOOT' 等相关信息
 sed -i 's|^#*openvfd_restart=.*|openvfd_restart="yes"|g' /etc/custom_service/start_service.sh
 ```
 
