@@ -171,7 +171,7 @@ create_partition() {
             ((i++))
         done
     fi
-    dd if=/dev/zero of=${DEV_EMMC} bs=1M count=16 conv=fsync
+    #dd if=/dev/zero of=${DEV_EMMC} bs=1M count=16 conv=fsync
 
     # Set partition size (Unit: MiB)
     BLANK1="16"
